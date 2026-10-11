@@ -77,7 +77,7 @@
     users.users.cubeto = {
         isNormalUser = true;
         # Enable ‘sudo’ for the user:
-        extraGroups = [ "wheel" ];
+        extraGroups = [ "wheel" "networkmanager" ];
         packages = with pkgs; [
             tree
         ];
@@ -92,44 +92,50 @@
     # services.libinput.enable = true;
 
     # Auto-login in the kernel console:
-    services.getty.autologinUser = "cubeto";
-    # Auto-start Hyprland on boot:
-    services.greetd = {
-        enable = true;
-        settings.default_session = {
-            user = "cubeto";
-            command = "start-hyprland";
-        };
-    };
-    # Enable an alternative Kernel Mode Settings Console:
-    services.kmscon = {
-        enable = false;
-        term = "xterm-256color";
-        hwRender = true;
-        fonts = [
-            {
-                name = "JetBrainsMono Nerd Font";
-                package = pkgs.nerd-fonts.jetbrains-mono;
-            }
-        ];
-    };
+    services = {
+    	getty.autologinUser = "cubeto";
+	    openssh.enable = true;
 
-    # Enable sound:
-    services.pipewire = {
-        enable = true;
-        # Enable PulseAudio retro compatibility:
-        pulse.enable = true;
-    };
+	    # To enable power saver/performance modes:
+	    power-profiles-daemon.enable = true;
 
-    services.openssh.enable = true;
+	    # Auto-start Hyprland on boot:
+	    greetd = {
+	        enable = true;
+	        settings.default_session = {
+	            user = "cubeto";
+	            command = "start-hyprland";
+	        };
+	    };
 
+	    # Enable an alternative Kernel Mode Settings Console:
+	    kmscon = {
+	        enable = false;
+	        term = "xterm-256color";
+	        hwRender = true;
+	        fonts = [
+	            {
+	                name = "JetBrainsMono Nerd Font";
+	                package = pkgs.nerd-fonts.jetbrains-mono;
+	            }
+	        ];
+	    };
+
+	    # Enable sound:
+		pipewire = {
+	        enable = true;
+	        # Enable PulseAudio retro compatibility:
+	        pulse.enable = true;
+	    };
+	};
+
+    networking.hostName = "nixos";
+    # Configure network connections interactively with nmcli or nmtui:
+    networking.networkmanager.enable = true;
     # Open ports in the firewall:
     # networking.firewall.allowedTCPPorts = [ ... ];
     # networking.firewall.allowedUDPPorts = [ ... ];
     networking.firewall.enable = false;
-    networking.hostName = "nixos";
-    # Configure network connections interactively with nmcli or nmtui:
-    networking.networkmanager.enable = true;
 
 
 
@@ -138,9 +144,15 @@
     	# System:
         btop
         brightnessctl
-        microfetch
         rust-motd
         nixos-icons
+        wl-clipboard
+
+		# Terminal tools:
+        microfetch
+        fzf
+        fd
+        ripgrep
 
         # Internet tools:
         wget
