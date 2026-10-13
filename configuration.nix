@@ -148,11 +148,15 @@
         nixos-icons
         wl-clipboard
 
+		gcc
+		binutils
+
 		# Terminal tools:
         microfetch
         fzf
         fd
         ripgrep
+        eza
 
         # Internet tools:
         wget
@@ -194,6 +198,9 @@
 	    };
 	    bash = {
 	        enable = true;
+	        shellAliases = {
+	        	"ls" = "eza --icons=auto --all --sort=type";
+	        };
 	    };
 	    zoxide = {
 	        enable = true;
