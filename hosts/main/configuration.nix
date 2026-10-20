@@ -6,44 +6,51 @@
         ./hardware-configuration.nix
     ];
 
-    nix.settings.experimental-features = [ "nix-command" "flakes" ];
-    nix.nixPath = [ "nixpkgs=${inputs.nixpkgs}" "nixpkgs-unstable=${inputs.nixpkgs-unstable}" ];
+    nix = {
+	    settings = {
+	    	experimental-features = [ "nix-command" "flakes" ];
+	    	# bash-prompt-prefix = "(\x1b[96mnix-shell\x1b[39m) ";
+	    };
+	    nixPath = [
+	    	"nixpkgs=${inputs.nixpkgs}"
+	    	"nixpkgs-unstable=${inputs.nixpkgs-unstable}"
+	    ];
+	};
 
-    # Use the systemd-boot EFI boot loader:
-    boot.loader.systemd-boot.enable = true;
-    boot.loader.efi.canTouchEfiVariables = true;
+    boot = {
+	    # Use the systemd-boot EFI boot loader:
+    	loader.systemd-boot.enable = true;
+		loader.efi.canTouchEfiVariables = true;
 
-    # Use latest kernel:
-    boot.kernelPackages = pkgs.linuxPackages_latest;
+	    # Use latest kernel:
+	    # boot.kernelPackages = pkgs.linuxPackages_latest;
+	    kernelPackages = pkgs.cachyosKernels.linuxPackages-cachyos-latest;
 
-    # Use a cool NixOS logo instead of the systemd messages:
-    boot.plymouth = {
-        # Enables boot.kernelParams[*] = "splash":
-        enable = true;
-        # Cool stars:
-        theme = "fade-in";
+	    # Use a cool NixOS logo instead of the systemd messages:
+	    plymouth = {
+	        # Enables boot.kernelParams[*] = "splash":
+	        enable = true;
+	        # Cool stars:
+	        theme = "fade-in";
+	    };
+
+	    # Enable "silent boot" (still can see logs by pressing 'esc'):
+	    consoleLogLevel = 3;
+	    initrd.verbose = false;
+	    loader.timeout = 0;
+	    kernelParams = [
+	        "quiet"
+	        "loglevel=3"
+	        # Hide the OS choice for bootloaders.
+	        # It's still possible to open the bootloader list by pressing any key,
+	        # it will just not appear on screen unless a key is pressed.
+	        "systemd.show_status=auto"
+	        "rd.udev.log_level=3"
+	        "rd.systemd.show_status=auto"
+	    ];
     };
 
-    # Enable "silent boot" (still can see logs by pressing 'esc'):
-    boot.consoleLogLevel = 3;
-    boot.initrd.verbose = false;
-    boot.loader.timeout = 0;
-    boot.kernelParams = [
-        "quiet"
-        "loglevel=3"
-        # Hide the OS choice for bootloaders.
-        # It's still possible to open the bootloader list by pressing any key,
-        # it will just not appear on screen unless a key is pressed.
-        "systemd.show_status=auto"
-        "rd.udev.log_level=3"
-        "rd.systemd.show_status=auto"
-    ];
-
-    # Set your time zone:
     time.timeZone = "America/Buenos_Aires";
-
-    # networking.proxy.default = "http://user:password@proxy:port/";
-    # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
     # Select internationalisation properties.
     # i18n.defaultLocale = "en_US.UTF-8";
@@ -81,6 +88,7 @@
         packages = with pkgs; [
             tree
         ];
+        # Never set a non-posix shell as your login shell (systemd's emergency mode).
         shell = pkgs.bash;
     };
 
@@ -95,6 +103,9 @@
     services = {
     	getty.autologinUser = "cubeto";
 	    openssh.enable = true;
+
+		# For xwayland:
+		xserver.videoDrivers = [ "nvidia" ];
 
 	    # To enable power saver/performance modes:
 	    power-profiles-daemon.enable = true;
@@ -127,26 +138,43 @@
 	        # Enable PulseAudio retro compatibility:
 	        pulse.enable = true;
 	    };
+
+		# Hardware temperature watcher:
+   	    thermald.enable = true;
 	};
 
-    networking.hostName = "nixos";
-    # Configure network connections interactively with nmcli or nmtui:
-    networking.networkmanager.enable = true;
-    # Open ports in the firewall:
-    # networking.firewall.allowedTCPPorts = [ ... ];
-    # networking.firewall.allowedUDPPorts = [ ... ];
-    networking.firewall.enable = false;
+    networking = {
+    	hostName = "nixos";
+	    # Configure network connections interactively with nmcli or nmtui:
+    	networkmanager.enable = true;
+	    # Open ports in the firewall:
+	    # networking.firewall.allowedTCPPorts = [ ... ];
+	    # networking.firewall.allowedUDPPorts = [ ... ];
+    	firewall.enable = false;
+
+	    # networking.proxy.default = "http://user:password@proxy:port/";
+	    # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+	};
 
 
 
     # -- PROGRAMS --
+    # Required environment variables for Wayland compositors:
+    # environment.variables = {
+    #     GBM_BACKEND = "nvidia-drm";
+    #     LIBVA_DRIVER_NAME = "nvidia";
+    #     __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+    # };
     environment.systemPackages = with pkgs; [
     	# System:
         btop
         brightnessctl
-        rust-motd
         nixos-icons
         wl-clipboard
+
+		# Graphics:
+        egl-wayland
+        nvidia-vaapi-driver
 
 		gcc
 		binutils
@@ -162,7 +190,7 @@
         wget
         curl
         gh
-        unstable.brave-origin
+        # unstable.brave-origin
 
     	# Terminals:
         # alacritty
@@ -181,26 +209,40 @@
         micro
 
     	# Desktop environment:
+    	hyprcursor
         # waybar
     ];
 
     # A few programs have a dedicated configuration module:
     programs = {
+    	# Enable to allow dynamically-linked programs to run (i.e. Zed's rust-analyzer)
+    	nix-ld = {
+    		enable = true;
+    	};
     	# Enabled by default:
         nano.enable = false;
         # firefox.enable = true;
 	    hyprland = {
 	        enable = true;
-	        xwayland.enable = false;
+	        xwayland.enable = true;
 	    };
 	    fish = {
 	        enable = true;
 	    };
 	    bash = {
 	        enable = true;
+	        promptInit = ''
+	          export PS1="\e[4;32m\u\e[39;24m@\e[4;32m\h\e[39;24m \e[36m\w\e[39m \$ "
+	        '';
 	        shellAliases = {
-	        	"ls" = "eza --icons=auto --all --sort=type";
+	        	"ls" = "eza --icons=auto --all --sort=type --git-ignore";
 	        };
+	        interactiveShellInit = ''
+	            if [[ $(${pkgs.procps}/bin/ps --no-header --pid=$PPID --format=comm) != "fish" ]] && [[ -z "$BASH_EXECUTION_STRING" ]]; then
+	              shopt -q login_shell && LOGIN_OPTION='--login' || LOGIN_OPTION=""
+	              exec ${pkgs.fish}/bin/fish $LOGIN_OPTION
+	            fi
+	        '';
 	    };
 	    zoxide = {
 	        enable = true;
@@ -228,6 +270,15 @@
 	            # pull.rebase = true;
 	            # fetch.prune = true;
             };
+	    };
+	    gamemode.enable = true;
+	    steam = {
+	    	package = pkgs.unstable.steam;
+	    	enable = true;
+	    	# Open ports in the firewall for Steam Remote Play:
+	    	remotePlay.openFirewall = true;
+    	  	# Open ports for Source Dedicated Server hosting:
+    	  	dedicatedServer.openFirewall = true;
 	    };
     };
 
