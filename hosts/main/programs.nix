@@ -27,7 +27,6 @@
         wget
         curl
         gh
-        # unstable.brave-origin
 
         # Terminals:
         # alacritty
