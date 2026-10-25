@@ -2,49 +2,26 @@
 {
     imports = [
         ./boot.nix
+        ./display.nix
         ./hardware/hardware-configuration.nix
         ./network/default.nix
+        ./nix-settings.nix
         ./programs.nix
         ./security.nix
-        ./services.nix
+        ./services/default.nix
         ./users.nix
     ];
-
-    nix = {
-	    settings = {
-	    	experimental-features = [ "nix-command" "flakes" ];
-	    	auto-optimise-store = true;
-	    	warn-dirty = false;
-	    	bash-prompt-prefix = "(nix-shell) ";
-	    	# Default is undefinitely:
-	    	connect-timeout = 10;
-	    	# Maximum overdrive:
-	    	cores = 0;
-	    	max-jobs = "auto";
-	    	# Default is 5:
-	    	download-attempts = 3;
-	    	# WARNING: "true" improves robustness in case of system crashes, but reduces performance:
-	    	fsync-metadata = false;
-	    	show-trace = true;
-	    };
-	    nixPath = [
-	    	"nixpkgs=${inputs.nixpkgs}"
-	    	"nixpkgs-unstable=${inputs.nixpkgs-unstable}"
-	    ];
-	};
 
     time.timeZone = "America/Buenos_Aires";
 
     # Select internationalisation properties.
     # i18n.defaultLocale = "en_US.UTF-8";
+
     # console = {
     #     font = "Lat2-Terminus16";
     #     keyMap = "us";
     #     useXkbConfig = true; # use xkb.options in tty.
     # };
-
-    # 'hardware-configuration.nix' tells me to use this file instead. Do I really need it?
-
 
     # Avoid using both at the same time!
     # swapDevices = [ { device = "/swap/swapfile"; } ];

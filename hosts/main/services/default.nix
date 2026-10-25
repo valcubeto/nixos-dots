@@ -1,8 +1,6 @@
 { ... }:
 {
-    imports = [
-        ./display.nix
-    ];
+    imports = [];
 
     services = {
     	# jellyfin.enable = true;

@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, editor-cmd, ... }:
 {
     environment.systemPackages = with pkgs; [
         home-manager
@@ -58,13 +58,6 @@
         # Enabled by default:
         nano.enable = false;
         # firefox.enable = true;
-        hyprland = {
-            enable = true;
-            xwayland.enable = true;
-        };
-        niri = {
-        	enable = true;
-        };
         fish = {
             enable = true;
         };
@@ -98,7 +91,7 @@
                 user.name = "Cubeto";
                 user.email = "valcubeto@proton.me";
                 init.defaultBranch = "main";
-                core.editor = "micro";
+                core.editor = editor-cmd;
                 safe.directory = "/etc/nixos";
                 # pull.rebase = true;
                 # fetch.prune = true;

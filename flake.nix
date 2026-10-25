@@ -23,6 +23,7 @@
 	    system = "x86_64-linux";
 	    main-user = "cubeto";
 	    main-host = "nixos";
+	    editor-cmd = "micro";
 	    # This will allow us to create an attribute "unstable" for "nixpkgs".
 	    # So, instead of passing two different pkgs versions as different arguments,
 	    # we can use unstable packages with the following syntax: pkgs.unstable.brave-origin.
@@ -41,7 +42,7 @@
 	            inherit system;
 
 	            specialArgs = {
-	                inherit inputs system main-user main-host;
+	                inherit inputs system main-user main-host editor-cmd;
 	            };
 
 		        modules = [
@@ -77,7 +78,7 @@
 	                ];
 	            };
 	            extraSpecialArgs = {
-	                inherit inputs system main-user main-host;
+	                inherit inputs system main-user main-host editor-cmd;
 	            };
 	            modules = [
 	                ./hosts/main/home-manager/${main-user}/home.nix

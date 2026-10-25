@@ -6,9 +6,9 @@
     ];
 
     boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "sd_mod" "alcor" ];
-    boot.initrd.kernelModules = [ ];
+    boot.initrd.kernelModules = [];
     boot.kernelModules = [ "kvm-intel" ];
-    boot.extraModulePackages = [ ];
+    boot.extraModulePackages = [];
 
     fileSystems = {
     	"/" = {
@@ -37,14 +37,20 @@
 	};
 
     # fileSystems."/swap" = {
-    #         device = "/dev/disk/by-uuid/a461a7b1-ff20-4b53-b9fc-c36749f345ca";
+    #     device = "/dev/disk/by-uuid/a461a7b1-ff20-4b53-b9fc-c36749f345ca";
     #     fsType = "btrfs";
     #     options = [ "subvol=swap" ];
     # };
 
-    # swapDevices = [];
-
-    nixpkgs.hostPlatform = lib.mkDefault system;
+    # Avoid using both at the same time!
+    # swapDevices = [ { device = "/swap/swapfile"; } ];
+    systemd.services.zswap.enable = false;
+    zramSwap = {
+        enable = true;
+        # algorithm = "zstd";
+        # memoryPercent = 30;
+        # priority = 10;
+    };
 
     hardware = {
     	bluetooth = {
@@ -52,9 +58,12 @@
     		powerOnBoot = false;
     	};
     	cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
-    	graphics.enable = true;
+    	# graphics.enable = true;
     };
 
 	# Temperature watcher:
     services.thermald.enable = true;
+
+    nixpkgs.hostPlatform = lib.mkDefault system;
 }
+
